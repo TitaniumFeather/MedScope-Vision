@@ -88,7 +88,7 @@ document.getElementById('newAnalysis')?.addEventListener('click', () => {
  // ========= CONFIG =========
     const ENABLE_API_KEY_INPUT = false;   // set true to show key field in UI
     const GEMINI_API_KEY = "AQ.Ab8RN6IjIkMkBdNJAJeCpEl_D4c-6yrKZGvYxLAAlDtlUAlbJQ";            // <-- paste your Gemini API key here
-    const MODEL = "gemini-1.5-flash";       // or "gemini-1.5-flash" for faster responses
+    const MODEL = "gemini-3.5-flash";       // or "gemini-1.5-flash" for faster responses
     const STORAGE_KEY = "medscope_pro_chat_v1";
     const THEME_KEY = "medscope_theme";
 
