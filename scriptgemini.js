@@ -91,7 +91,7 @@ const KEY_STORAGE    = 'medscope_gemini_key';
 // ========= API KEY (HARDCODED) =========
 // Paste your own Gemini API key below. This is used directly instead of
 // the sidebar input / localStorage, so the user never needs to supply one.
-const HARDCODED_GEMINI_API_KEY = 'AQ.Ab8RN6ISetgyMnDuP5negdLc8sbN6j2nG3R4iF09YibTHL37_A';
+const HARDCODED_GEMINI_API_KEY = 'AQ.Ab8RN6I_S11s0J6YY6AGwRQJtQ8FDCdpj6w-i9eSsRS_TvVxFA';
 
 function getSavedKey() { return localStorage.getItem(KEY_STORAGE) || ''; }
 function saveKey(k)    { k ? localStorage.setItem(KEY_STORAGE, k) : localStorage.removeItem(KEY_STORAGE); }
@@ -493,7 +493,7 @@ analyzeBtn.addEventListener('click', async () => {
   if (state.busy || state.images.length === 0) return;
 
   const key = HARDCODED_GEMINI_API_KEY.trim();
-  if (!key || key === 'sd') {
+  if (!key || key === 'PASTE_YOUR_GEMINI_API_KEY_HERE') {
     addMessage('ai', `No API key set. Add your Gemini key to HARDCODED_GEMINI_API_KEY in scriptgemini.js.\nGet one free at https://aistudio.google.com/apikey`,
       `<b>No API key set.</b><div class="hint">Add your Gemini key to <code>HARDCODED_GEMINI_API_KEY</code> in scriptgemini.js. Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>.</div>`);
     return;
