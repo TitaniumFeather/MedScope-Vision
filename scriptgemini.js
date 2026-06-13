@@ -91,7 +91,7 @@ const KEY_STORAGE    = 'medscope_gemini_key';
 // ========= API KEY (HARDCODED) =========
 // Paste your own Gemini API key below. This is used directly instead of
 // the sidebar input / localStorage, so the user never needs to supply one.
-const HARDCODED_GEMINI_API_KEY = 'AQ.Ab8RN6I_S11s0J6YY6AGwRQJtQ8FDCdpj6w-i9eSsRS_TvVxFA';
+const HARDCODED_GEMINI_API_KEY = 'AQ.Ab8RN6IIfpQVVvl6IjILzU4SfeE117G4jquv5D6DPUf90oDPEg';
 
 function getSavedKey() { return localStorage.getItem(KEY_STORAGE) || ''; }
 function saveKey(k)    { k ? localStorage.setItem(KEY_STORAGE, k) : localStorage.removeItem(KEY_STORAGE); }
@@ -517,8 +517,8 @@ analyzeBtn.addEventListener('click', async () => {
     setProgress(30);
 
     const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`,
-      { method:'POST', headers:{'Content-Type':'application/json'},
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+{ method:'POST', headers:{'Content-Type':'application/json', 'x-goog-api-key': key},
         body: JSON.stringify({
           contents: [{ parts }],
           generationConfig: { temperature: 0.25, topK: 40, topP: 0.95, maxOutputTokens: 2048 },
