@@ -91,7 +91,7 @@ const KEY_STORAGE    = 'medscope_gemini_key';
 // ========= API KEY (HARDCODED) =========
 // Paste your own Gemini API key below. This is used directly instead of
 // the sidebar input / localStorage, so the user never needs to supply one.
-const HARDCODED_GEMINI_API_KEY = 'AQ.Ab8RN6IIfpQVVvl6IjILzU4SfeE117G4jquv5D6DPUf90oDPEg';
+const HARDCODED_GEMINI_API_KEY = 'AQ.Ab8RN6L5bwNQJ8bJG51ZvsYy5-JlO21klttcGn1_TpTjsVQziw';
 
 function getSavedKey() { return localStorage.getItem(KEY_STORAGE) || ''; }
 function saveKey(k)    { k ? localStorage.setItem(KEY_STORAGE, k) : localStorage.removeItem(KEY_STORAGE); }
