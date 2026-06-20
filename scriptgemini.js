@@ -86,22 +86,6 @@ const MODEL          = 'gemini-2.5-flash';
 const SESSIONS_META  = 'medscope_sessions_v2';
 const SESS_PREFIX    = 'medscope_sess_';
 const THEME_KEY      = 'medscope_theme';
-const KEY_STORAGE    = 'medscope_gemini_key';
-
-// ========= API KEY (HARDCODED) =========
-// Paste your own Gemini API key below. This is used directly instead of
-// the sidebar input / localStorage, so the user never needs to supply one.
-const HARDCODED_GEMINI_API_KEY = 'AQ.Ab8RN6L5bwNQJ8bJG51ZvsYy5-JlO21klttcGn1_TpTjsVQziw';
-
-function getSavedKey() { return localStorage.getItem(KEY_STORAGE) || ''; }
-function saveKey(k)    { k ? localStorage.setItem(KEY_STORAGE, k) : localStorage.removeItem(KEY_STORAGE); }
-function showKeyStatus(msg, ok) {
-  const el = document.getElementById('keyStatus');
-  if (!el) return;
-  el.textContent = msg;
-  el.style.color = ok ? 'var(--accent)' : '#ff6b6b';
-  el.style.display = msg ? 'block' : 'none';
-}
 
 // ========= SESSION MANAGEMENT =========
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
@@ -231,19 +215,6 @@ const lightboxImg  = lightbox.querySelector('img');
 
 // ========= INIT =========
 document.addEventListener('DOMContentLoaded', () => {
-  // Key input
-  const field = document.getElementById('apiKeyField');
-  const btn   = document.getElementById('keySaveBtn');
-  const saved = getSavedKey();
-  if (field && saved) { field.value = saved; showKeyStatus('✓ Key loaded', true); }
-  btn?.addEventListener('click', () => {
-    const val = field?.value?.trim();
-    if (!val) { showKeyStatus('Please paste a key first', false); return; }
-    if (!val.startsWith('AIza')) { showKeyStatus("Doesn't look like a Gemini key", false); return; }
-    saveKey(val); showKeyStatus('✓ Key saved', true);
-  });
-  field?.addEventListener('keydown', e => { if (e.key === 'Enter') btn?.click(); });
-
   // Theme
   const savedTheme = localStorage.getItem(THEME_KEY);
   if (savedTheme) root.setAttribute('data-theme', savedTheme);
@@ -258,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.sessionId = meta.active;
     state.messages = getSessData(meta.active).messages;
     if (state.messages.length > 0) {
-      setTimeout(() => __showAppHideHero(), 0); // override hero-only after it runs
+      setTimeout(() => __showAppHideHero(), 0);
     }
   }
   renderSessionList();
@@ -275,44 +246,35 @@ themeBtn.addEventListener('click', () => {
 
 // ========= MARKDOWN =========
 function renderMarkdown(raw) {
-  // Escape HTML first
   let t = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  // Code blocks
   const blocks = [];
   t = t.replace(/```[\s\S]*?```/g, m => {
     const code = m.slice(3,-3).replace(/^\w+\n/,'');
     blocks.push(`<pre><code>${code.trim()}</code></pre>`);
     return `\x00B${blocks.length-1}\x00`;
   });
-  // Inline code
   t = t.replace(/`([^`]+)`/g,'<code>$1</code>');
-  // Bold+italic, bold, italic
   t = t.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>');
   t = t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
   t = t.replace(/\*(.+?)\*/g,'<em>$1</em>');
-  // Headings
   t = t.replace(/^#### (.+)$/gm,'<h5 class="md-h">$1</h5>');
   t = t.replace(/^### (.+)$/gm,'<h4 class="md-h">$1</h4>');
   t = t.replace(/^## (.+)$/gm,'<h3 class="md-h">$1</h3>');
   t = t.replace(/^# (.+)$/gm,'<h2 class="md-h">$1</h2>');
-  // Bullet lists
   t = t.replace(/((?:^[•\-\*] .+(?:\n|$))+)/gm, block => {
     const items = block.trim().split('\n').map(l => `<li>${l.replace(/^[•\-\*]\s+/,'')}</li>`).join('');
     return `<ul class="md-ul">${items}</ul>`;
   });
-  // Numbered lists
   t = t.replace(/((?:^\d+\. .+(?:\n|$))+)/gm, block => {
     const items = block.trim().split('\n').map(l => `<li>${l.replace(/^\d+\.\s+/,'')}</li>`).join('');
     return `<ol class="md-ol">${items}</ol>`;
   });
-  // Paragraphs
   const parts = t.split(/\n{2,}/);
   t = parts.map(p => {
     p = p.trim(); if (!p) return '';
     if (/^<(?:h[2-5]|ul|ol|pre|\x00)/.test(p)) return p;
     return `<p>${p.replace(/\n/g,'<br>')}</p>`;
   }).filter(Boolean).join('');
-  // Restore code blocks
   blocks.forEach((b,i) => { t = t.replace(`\x00B${i}\x00`, b); });
   return t;
 }
@@ -463,7 +425,7 @@ clearChatBtn.addEventListener('click', () => {
   state.messages = [];
   chat.innerHTML = '';
   saveCurrentSession();
-  autoNameSession(state.sessionId, ''); // reset name
+  autoNameSession(state.sessionId, '');
   const meta = getMeta();
   const sess = meta.list.find(s => s.id === state.sessionId);
   if (sess) { sess.name = 'New analysis'; setMeta(meta); }
@@ -492,13 +454,6 @@ function mimeOf(dataUrl)    { return (dataUrl.match(/data:([^;]+);/) || [])[1] |
 analyzeBtn.addEventListener('click', async () => {
   if (state.busy || state.images.length === 0) return;
 
-  const key = HARDCODED_GEMINI_API_KEY.trim();
-  if (!key || key === 'PASTE_YOUR_GEMINI_API_KEY_HERE') {
-    addMessage('ai', `No API key set. Add your Gemini key to HARDCODED_GEMINI_API_KEY in scriptgemini.js.\nGet one free at https://aistudio.google.com/apikey`,
-      `<b>No API key set.</b><div class="hint">Add your Gemini key to <code>HARDCODED_GEMINI_API_KEY</code> in scriptgemini.js. Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>.</div>`);
-    return;
-  }
-
   state.busy = true; syncButtons(); setProgress(5, true);
 
   const thumbs = state.images.map((_,i) => `Image ${i+1}`).join(', ');
@@ -516,21 +471,11 @@ analyzeBtn.addEventListener('click', async () => {
 
     setProgress(30);
 
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
-{ method:'POST', headers:{'Content-Type':'application/json', 'x-goog-api-key': key},
-        body: JSON.stringify({
-          contents: [{ parts }],
-          generationConfig: { temperature: 0.25, topK: 40, topP: 0.95, maxOutputTokens: 2048 },
-          safetySettings: [
-            { category:'HARM_CATEGORY_HARASSMENT',        threshold:'BLOCK_MEDIUM_AND_ABOVE' },
-            { category:'HARM_CATEGORY_HATE_SPEECH',       threshold:'BLOCK_MEDIUM_AND_ABOVE' },
-            { category:'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold:'BLOCK_MEDIUM_AND_ABOVE' },
-            { category:'HARM_CATEGORY_DANGEROUS_CONTENT', threshold:'BLOCK_MEDIUM_AND_ABOVE' }
-          ]
-        })
-      }
-    );
+    const resp = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ parts }),
+    });
 
     setProgress(70);
 
@@ -545,10 +490,8 @@ analyzeBtn.addEventListener('click', async () => {
     if (!data.candidates?.[0]?.content) throw new Error('No content generated. Safety filters may have blocked the response.');
     const rawText = data.candidates[0].content.parts[0].text?.trim() || '(No response)';
 
-    // Replace loading bubble with streaming bubble
     removeLoadingBubble();
 
-    // Create streaming bubble manually (not yet in state)
     const wrap = document.createElement('div');
     wrap.className = 'msg';
     const bubble = document.createElement('div');
@@ -565,10 +508,8 @@ analyzeBtn.addEventListener('click', async () => {
 
     setProgress(100);
 
-    // Animate text reveal
     await typewriterReveal(content, rawText);
 
-    // Add copy/delete ops now
     const ops = document.createElement('div');
     ops.className = 'bubble-ops';
     const copy = document.createElement('button');
@@ -583,7 +524,6 @@ analyzeBtn.addEventListener('click', async () => {
     bubble.classList.remove('streaming');
     bubble.appendChild(ops);
 
-    // Commit to state and save
     state.messages.push({ role: 'ai', text: rawText, html: renderMarkdown(rawText) });
     saveCurrentSession();
     autoNameSession(state.sessionId, rawText);
